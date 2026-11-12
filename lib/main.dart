@@ -291,83 +291,80 @@ class XgsEngine {
   }
 
   List<double> _adx(int shift) {
-  final end = candles.length - 1 - shift;
-  if (end < adxPeriod * 3) return [0.0, 0.0, 0.0];
+    final end = candles.length - 1 - shift;
+    if (end < adxPeriod * 3) {
+      return [0.0, 0.0, 0.0];
+    }
 
-  final start = end - 60;
-  final trs = <double>[];
-  final plus = <double>[];
-  final minus = <double>[];
+    final start = end - 60;
+    final trs = <double>[];
+    final plus = <double>[];
+    final minus = <double>[];
 
-  for (int i = max(1, start); i <= end; i++) {
-    final c = candles[i];
-    final p = candles[i - 1];
+    for (int i = max(1, start); i <= end; i++) {
+      final c = candles[i];
+      final p = candles[i - 1];
 
-    final double up = c.high - p.high;
-    final double down = p.low - c.low;
+      final double up = c.high - p.high;
+      final double down = p.low - c.low;
 
-    final double range = c.high - c.low;
-final double highDiff = (c.high - p.close).abs();
-final double lowDiff = (c.low - p.close).abs();
+      final double range = c.high - c.low;
+      final double highDiff = (c.high - p.close).abs();
+      final double lowDiff = (c.low - p.close).abs();
 
-final double tr = range > highDiff
-    ? (range > lowDiff ? range : lowDiff)
-    : (highDiff > lowDiff ? highDiff : lowDiff);
+      final double tr = range > highDiff
+          ? (range > lowDiff ? range : lowDiff)
+          : (highDiff > lowDiff ? highDiff : lowDiff);
 
-    trs.add(tr);
-    plus.add(up > down && up > 0 ? up : 0.0);
-    minus.add(down > up && down > 0 ? down : 0.0);
-  }
+      trs.add(tr);
+      plus.add(up > down && up > 0 ? up : 0.0);
+      minus.add(down > up && down > 0 ? down : 0.0);
+    }
 
-  double atr =
-      trs.take(adxPeriod).fold<double>(0.0, (a, b) => a + b) / adxPeriod;
+    double atr =
+        trs.take(adxPeriod).fold<double>(0.0, (a, b) => a + b) / adxPeriod;
 
-  double pdi = 0.0;
-  double mdi = 0.0;
-  double adx = 0.0;
+    double pdi = 0.0;
+    double mdi = 0.0;
+    double adx = 0.0;
 
-  final dxs = <double>[];
+    final dxs = <double>[];
 
-  for (int i = adxPeriod; i < trs.length; i++) {
-    atr = ((atr * (adxPeriod - 1)) + trs[i]) / adxPeriod;
+    for (int i = adxPeriod; i < trs.length; i++) {
+      atr = ((atr * (adxPeriod - 1)) + trs[i]) / adxPeriod;
 
-    final psm = plus
-        .sublist(max(0, i - adxPeriod + 1), i + 1)
-        .fold<double>(0.0, (a, b) => a + b);
+      final psm = plus
+          .sublist(max(0, i - adxPeriod + 1), i + 1)
+          .fold<double>(0.0, (a, b) => a + b);
 
-    final msm = minus
-        .sublist(max(0, i - adxPeriod + 1), i + 1)
-        .fold<double>(0.0, (a, b) => a + b);
+      final msm = minus
+          .sublist(max(0, i - adxPeriod + 1), i + 1)
+          .fold<double>(0.0, (a, b) => a + b);
 
-    pdi = atr == 0.0
-        ? 0.0
-        : 100.0 * (psm / adxPeriod) / atr;
+      pdi = atr == 0.0
+          ? 0.0
+          : 100.0 * (psm / adxPeriod) / atr;
 
-    mdi = atr == 0.0
-        ? 0.0
-        : 100.0 * (msm / adxPeriod) / atr;
+      mdi = atr == 0.0
+          ? 0.0
+          : 100.0 * (msm / adxPeriod) / atr;
 
-    final double dx = (pdi + mdi) == 0.0
-        ? 0.0
-        : 100.0 * (pdi - mdi).abs() / (pdi + mdi);
+      final double dx = (pdi + mdi) == 0.0
+          ? 0.0
+          : 100.0 * (pdi - mdi).abs() / (pdi + mdi);
 
-    dxs.add(dx);
-  }
+      dxs.add(dx);
+    }
 
-  if (dxs.isNotEmpty) {
-    adx = dxs.length < adxPeriod
-        ? dxs.fold<double>(0.0, (a, b) => a + b) / dxs.length
-        : dxs
-                .sublist(dxs.length - adxPeriod)
-                .fold<double>(0.0, (a, b) => a + b) /
-            adxPeriod;
-  }
+    if (dxs.isNotEmpty) {
+      adx = dxs.length < adxPeriod
+          ? dxs.fold<double>(0.0, (a, b) => a + b) / dxs.length
+          : dxs
+                  .sublist(dxs.length - adxPeriod)
+                  .fold<double>(0.0, (a, b) => a + b) /
+              adxPeriod;
+    }
 
-  return [adx, pdi, mdi];
-}
-    if (dxs.isNotEmpty) adx = dxs.length < adxPeriod
-        ? dxs.fold(0.0, (a, b) => a + b) / dxs.length
-        : dxs.sublist(dxs.length - adxPeriod).fold(0.0, (a, b) => a + b) / adxPeriod;
     return [adx, pdi, mdi];
   }
 
