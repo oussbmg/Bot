@@ -306,13 +306,13 @@ class XgsEngine {
     final double up = c.high - p.high;
     final double down = p.low - c.low;
 
-    final double tr = max(
-      c.high - c.low,
-      max(
-        (c.high - p.close).abs(),
-        (c.low - p.close).abs(),
-      ),
-    ).toDouble();
+    final double range = c.high - c.low;
+final double highDiff = (c.high - p.close).abs();
+final double lowDiff = (c.low - p.close).abs();
+
+final double tr = range > highDiff
+    ? (range > lowDiff ? range : lowDiff)
+    : (highDiff > lowDiff ? highDiff : lowDiff);
 
     trs.add(tr);
     plus.add(up > down && up > 0 ? up : 0.0);
